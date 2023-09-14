@@ -75,7 +75,7 @@ void cast_ray(SDL_Instance *instance)
 			if (WORLD_MAP[map.x][map.y] > 0)  /* Check if ray has hit a wall */
 				hit = true;
 		}
-		draw_stripe(instance, x, side, side_dist, delta_dist, map);
+		draw_stripe(instance, x, side, side_dist, delta_dist, map, ray_dir);
 	}
   SDL_RenderPresent(instance->renderer);
 }
@@ -90,9 +90,11 @@ void cast_ray(SDL_Instance *instance)
  */
 void draw_stripe(
 	SDL_Instance *instance, int pos_x, int wall_direction,
-	point_double_t side_dist, point_double_t delta_dist, point_int_t map)
+	point_double_t side_dist, point_double_t delta_dist,
+	point_int_t map, point_double_t ray_direction)
 {
 	int line_height, draw_start, draw_end;
+	int height;
 	SDL_Color color;
 	SDL_Color RGB_Red = {255, 0, 0, 255};
 	SDL_Color RGB_Green = {0, 255, 0, 255};
@@ -109,7 +111,7 @@ void draw_stripe(
 		wall_distance = (side_dist.y - delta_dist.y);
 
 	/* Correct fish bowl effect */
-	wall_distance = wall_distance * cos(plane.x);
+	wall_distance *= cos(dir.x - ray_direction.x);
 
 	/* Calculate height of line to draw on screen */
 	line_height = (int)(SCREEN_HEIGHT / wall_distance);

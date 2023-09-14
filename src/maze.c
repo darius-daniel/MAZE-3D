@@ -44,7 +44,7 @@ int WORLD_MAP[MAP_WIDTH][MAP_HEIGHT] =
  */
 int main(void)
 {
-	pos.x = 12, pos.y = 10;
+	pos.x = 22, pos.y = 12;
 	dir.x = -1, dir.y = 0;
 	plane.x = 0, plane.y = 0.66;
 	time = 0;

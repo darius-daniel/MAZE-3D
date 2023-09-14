@@ -41,21 +41,21 @@ void move()
 		if (WORLD_MAP[(int)(pos.x)][(int)(pos.y - dir.y * move_speed)] == false)
 			pos.y -= dir.y * move_speed;
 	}
-	/* strafe left */
-	if (keystate[SDL_SCANCODE_Q])
+	/* Move left if no wall beside you */
+	if (keystate[SDL_SCANCODE_A])
 	{
-		if (!*(WORLD_MAP + (int)(pos.x - plane.x * move_speed) * MAP_WIDTH + (int)(pos.y)))
+		if (WORLD_MAP[(int)(pos.x - plane.x * move_speed)][(int)(pos.y)] == false)
 			pos.x -= plane.x * move_speed;
-		if (!*(WORLD_MAP + (int)(pos.x) * MAP_WIDTH + (int)(pos.y - plane.y * move_speed)))
+		if (WORLD_MAP[(int)(pos.x)][(int)(pos.y - plane.y * move_speed)] == false)
 			pos.y -= plane.y * move_speed;
 	}
 
-	/* strafe right */
-	if (keystate[SDL_SCANCODE_E])
+	/* Move right if no wall beside you */
+	if (keystate[SDL_SCANCODE_D])
 	{
-		if (!*(WORLD_MAP + (int)(pos.x + plane.x * move_speed) * MAP_WIDTH + (int)(pos.y)))
+		if (WORLD_MAP[(int)(pos.x + plane.x * move_speed)][(int)(pos.y)] == false)
 			pos.x += plane.x * move_speed;
-		if (!*(WORLD_MAP + (int)(pos.x) * MAP_WIDTH + (int)(pos.y + plane.y * move_speed)))
+		if (WORLD_MAP[(int)(pos.x)][(int)(pos.y + plane.y * move_speed)] == false)
 			pos.y += plane.y * move_speed;
 	}
 	/* rotate to the right */

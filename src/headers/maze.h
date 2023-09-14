@@ -85,7 +85,8 @@ int done();
 void cast_ray(SDL_Instance *instance);
 void draw_stripe(
 	SDL_Instance *instance, int pos_x, int wall_direction,
-	point_double_t side_dist, point_double_t delta_dist, point_int_t map);
+	point_double_t side_dist, point_double_t delta_dist,
+	point_int_t map, point_double_t ray_direction);
 void move();
 
 #endif
