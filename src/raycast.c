@@ -15,38 +15,26 @@ void cast_ray(SDL_Instance *instance)
 	point_int_t step;      // what direction to step in x or y-direction (either +1 or -1)
 
 	double cameraX;
-	double perp_wall_dist;  // Perpendicular wall distance
 	bool hit;
 	int side; //was a NS or an EW wall hit?
 
 	for(int x = 0; x < SCREEN_WIDTH; x++)
 	{
-		//calculate ray position and direction
-		cameraX = 2 * x / (double)(SCREEN_WIDTH - 1); //x-coordinate in camera space
+		/* Calculate ray position and direction */
+		cameraX = 2 * x / (double)(SCREEN_WIDTH) - 1;  /* x-coordinate in camera space */
 		ray_dir.x = dir.x + plane.x * cameraX;
 		ray_dir.y = dir.y + plane.y * cameraX;
 
-		map.x = (int)(pos.x);  /* which box of the map we're in */
+		/* Set the grid coordinates on the maze */
+		map.x = (int)(pos.x);
 		map.y = (int)(pos.y);
 
-		/*
-		* length of ray from one x or y-side to next x or y-side. These are derived as:
-		* delta_dist.x = sqrt(1 + (ray_dir.y * ray_dir.y) / (ray_dir.x * ray_dir.x))
-		* delta_dist.y = sqrt(1 + (ray_dir.x * ray_dir.x) / (ray_dir.y * ray_dir.y))
-		* which can be simplified to abs(|ray_dir| / ray_dir.x) and abs(|ray_dir| / ray_dir.y)
-		* where |ray_dir| is the length of the vector (ray_dir.x, ray_dir.y). Its length,
-		* unlike (dir.x, dir.y) is not 1, however this does not matter, only the
-		* ratio between delta_dist.x and delta_dist.y matters, due to the way the DDA
-		* stepping further below works. So the values can be computed as below.
-		* Division through zero is prevented, even though technically that's not
-		* needed in C++ with IEEE 754 floating point values.
-		*/
-		delta_dist.x = (ray_dir.x == 0) ? 1e30 : abs(1 / ray_dir.x);
-		delta_dist.y = (ray_dir.y == 0) ? 1e30 : abs(1 / ray_dir.y);
+		/* Compute distance to next X or Y intersection. */
+		delta_dist.x = sqrt(1 + (pow(ray_dir.y, 2)) / pow(ray_dir.x, 2));
+		delta_dist.y = sqrt(1 + (pow(ray_dir.x, 2)) / pow(ray_dir.y, 2));
 
-		hit = false;  /* was there wall hit? */
-
-		if(ray_dir.x < 0)  /* calculate step and initial side_dist */
+		/* Calculate step and initial side_dist from pos to first X or Y */
+		if (ray_dir.x < 0)
 		{
 			step.x = -1;
 			side_dist.x = (pos.x - map.x) * delta_dist.x;
@@ -57,7 +45,7 @@ void cast_ray(SDL_Instance *instance)
 			side_dist.x = (map.x + 1.0 - pos.x) * delta_dist.x;
 		}
 
-		if(ray_dir.y < 0)
+		if (ray_dir.y < 0)
 		{
 			step.y = -1;
 			side_dist.y = (pos.y - map.y) * delta_dist.y;
@@ -68,6 +56,7 @@ void cast_ray(SDL_Instance *instance)
 			side_dist.y = (map.y + 1.0 - pos.y) * delta_dist.y;
 		}
 
+		hit = false;  /* was there wall hit? */
 		while (hit == false)  /* perform DDA */
 		{
 			if (side_dist.x < side_dist.y)  /* jump to next map square, either in x-direction, or in y-direction */
@@ -86,7 +75,7 @@ void cast_ray(SDL_Instance *instance)
 			if (WORLD_MAP[map.x][map.y] > 0)  /* Check if ray has hit a wall */
 				hit = true;
 		}
-		draw_stripe(instance, x, perp_wall_dist, side, side_dist, delta_dist);
+		draw_stripe(instance, x, side, side_dist, delta_dist, map);
 	}
   SDL_RenderPresent(instance->renderer);
 }
@@ -95,25 +84,25 @@ void cast_ray(SDL_Instance *instance)
  * draw_stripe - Draws a stripe of the wall on the window
  * @instance: a pointer to a struct containing the window and renderer as members
  * @pos_x: the horizontal position of the wall stripe be drawn on the window
- * @wall_distance: the perpendicular distance of the wall from the player
  * @wall_direction: indicates whether the wall is North-South or East-West facing
  * @side_dist: length of ray from current position to next x or y-side
  * @delta_dist: length of ray from one x or y-side to next x or y-side
  */
-void draw_stripe(SDL_Instance *instance, int pos_x, double wall_distance,
-			int wall_direction, point_double_t side_dist, point_double_t delta_dist)
+void draw_stripe(
+	SDL_Instance *instance, int pos_x, int wall_direction,
+	point_double_t side_dist, point_double_t delta_dist, point_int_t map)
 {
 	int line_height, draw_start, draw_end;
 	SDL_Color color;
+  SDL_Color RGB_Red = {255, 0, 0, 255};
+  SDL_Color RGB_Green = {0, 255, 0, 255};
+  SDL_Color RGB_Blue = {0, 0, 255, 255};
+  SDL_Color RGB_White = {255, 255, 255, 255};
+  SDL_Color RGB_Yellow = {255, 255, 0, 255};
 
-	/*
-		* Calculate distance projected on camera direction. This is the shortest distance from the point where the wall is
-		* hit to the camera plane. Euclidean to center camera point would give fisheye effect!
-		* This can be computed as (map.x - pos.x + (1 - step.x) / 2) / ray_dir.x for side == 0, or same formula with Y
-		* for size == 1, but can be simplified to the code below thanks to how sideDist and deltaDist are computed:
-		* because they were left scaled to |ray_dir|. sideDist is the entire length of the ray above after the multiple
-		* steps, but we subtract deltaDist once because one step more into the wall was taken above.
-	*/
+	double wall_distance;  /* Perpendicular wall distance */
+
+	/* Calculate distance projected on camera direction. */
 	if (wall_direction == 0)
 		wall_distance = (side_dist.x - delta_dist.x);
 	else
@@ -131,9 +120,15 @@ void draw_stripe(SDL_Instance *instance, int pos_x, double wall_distance,
 	if (draw_end >= SCREEN_HEIGHT)
 		draw_end = SCREEN_HEIGHT - 1;
 
-	/* choose wall color */
-	color.r = 0, color.g = 255, color.b = 0, color.a = 255;
-
+	/* Choose wall color */
+  switch (WORLD_MAP[map.x][map.y])
+  {
+    case 1: color = RGB_Red;
+    case 2: color = RGB_Green;
+    case 3: color = RGB_Green;
+    case 4: color = RGB_White;
+    default: color = RGB_Yellow;
+  }
 	/* give x and y sides different brightness */
 	if (wall_direction == 1)
 	{
@@ -144,6 +139,8 @@ void draw_stripe(SDL_Instance *instance, int pos_x, double wall_distance,
 
 	//draw the pixels of the stripe as a vertical line
 	// verLine(x, drawStart, drawEnd, color);
-	SDL_SetRenderDrawColor(instance->renderer, color.r, color.g, color.b, color.a);
-	SDL_RenderDrawLine(instance->renderer, pos_x, draw_start, pos_x, draw_end);
+	SDL_SetRenderDrawColor(
+		instance->renderer, color.r, color.g, color.b, color.a);
+	SDL_RenderDrawLine(
+		instance->renderer, pos_x, draw_start, pos_x, draw_end);
 }

@@ -59,8 +59,8 @@ typedef struct point_double_s
 */
 #define MAP_WIDTH 24
 #define MAP_HEIGHT 24
-#define SCREEN_WIDTH 1160
-#define SCREEN_HEIGHT 645
+#define SCREEN_WIDTH 1260
+#define SCREEN_HEIGHT 720
 
 /* ==================================================================
  * Global Variables
@@ -83,8 +83,9 @@ extern double time;
 int init_instance(SDL_Instance *);
 int done();
 void cast_ray(SDL_Instance *instance);
-void draw_stripe(SDL_Instance *instance, int pos_x, double wall_distance,
-        int wall_direction, point_double_t side_dist, point_double_t delta_dist);
+void draw_stripe(
+	SDL_Instance *instance, int pos_x, int wall_direction,
+	point_double_t side_dist, point_double_t delta_dist, point_int_t map);
 void move();
 
 #endif
