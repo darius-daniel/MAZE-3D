@@ -94,11 +94,11 @@ void draw_stripe(
 {
 	int line_height, draw_start, draw_end;
 	SDL_Color color;
-  SDL_Color RGB_Red = {255, 0, 0, 255};
-  SDL_Color RGB_Green = {0, 255, 0, 255};
-  SDL_Color RGB_Blue = {0, 0, 255, 255};
-  SDL_Color RGB_White = {255, 255, 255, 255};
-  SDL_Color RGB_Yellow = {255, 255, 0, 255};
+	SDL_Color RGB_Red = {255, 0, 0, 255};
+	SDL_Color RGB_Green = {0, 255, 0, 255};
+	SDL_Color RGB_Blue = {0, 0, 255, 255};
+	SDL_Color RGB_White = {255, 255, 255, 255};
+	SDL_Color RGB_Yellow = {255, 255, 0, 255};
 
 	double wall_distance;  /* Perpendicular wall distance */
 
@@ -107,6 +107,9 @@ void draw_stripe(
 		wall_distance = (side_dist.x - delta_dist.x);
 	else
 		wall_distance = (side_dist.y - delta_dist.y);
+
+	/* Correct fish bowl effect */
+	wall_distance = wall_distance * cos(plane.x);
 
 	/* Calculate height of line to draw on screen */
 	line_height = (int)(SCREEN_HEIGHT / wall_distance);

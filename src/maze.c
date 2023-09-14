@@ -44,7 +44,7 @@ int WORLD_MAP[MAP_WIDTH][MAP_HEIGHT] =
  */
 int main(void)
 {
-	pos.x = 1, pos.y = 10;
+	pos.x = 12, pos.y = 10;
 	dir.x = -1, dir.y = 0;
 	plane.x = 0, plane.y = 0.66;
 	time = 0;
@@ -52,7 +52,7 @@ int main(void)
 	if (init_instance(&instance) == 1)
 		return (1);
 
-	while(!done())
+	while (!done())
 	{
 		SDL_SetRenderDrawColor(instance.renderer, 0, 0, 0, 0);
 		SDL_RenderClear(instance.renderer);
@@ -60,4 +60,9 @@ int main(void)
 		cast_ray(&instance);
 		move();
   	}
+
+	SDL_DestroyRenderer(instance.renderer);
+	SDL_DestroyWindow(instance.window);
+	SDL_Quit();
+	return (0);
 }
